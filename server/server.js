@@ -4,7 +4,9 @@ const axios = require("axios")
 const cors = require("cors")
 const bodyParser = require("body-parser")
 const connectDB = require("./db")
+
 const User = require("./models/User") // Import User model from models directory
+const Post = require("./models/Post") // Import User model from models directory
 
 connectDB()
 
@@ -14,9 +16,6 @@ const PORT = 3000
 
 app.use(bodyParser.json())
 app.use(cors())
-
-// global variables?
-let messageFromClient = []
 
 // Define a route
 app.get("/", async (req, res) => {
@@ -45,9 +44,13 @@ app.post("/post", (req, res) => {
 })
 
 //post request
-app.get("/post", (req, res) => {
-    console.log("get: /post" + messageFromClient)
-    res.send(messageFromClient)
+app.get("/posts", async (req, res) => {
+    try {
+        const posts = await Post.find()
+        res.json(posts)
+    } catch (err) {
+        console.log(err)
+    }
 })
 
 app.post("/users", async (req, res) => {
@@ -78,7 +81,6 @@ app.get("/users", async (req, res) => {
     try {
         // Fetch all users from MongoDB
         const users = await User.find()
-
         res.json(users)
     } catch (error) {
         res.status(500).send({
@@ -111,6 +113,6 @@ app.delete("/users", async (req, res) => {
 
 // Start the server
 const port = process.env.PORT || PORT // Use the PORT environment variable if available, otherwise use port 3000
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
     console.log(`Server is running on port ${port}`)
 })
