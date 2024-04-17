@@ -8,6 +8,7 @@ import User from "./User"
 import { AddNewUser, GetAllUsers } from "./api"
 
 const BASE_URL = "http://localhost:3000"
+const HEROKU_URL = "https://seb-express-server-e4b328a3635b.herokuapp.com"
 
 function App() {
     const [inputMsg, setInputMsg] = useState("")
@@ -22,6 +23,15 @@ function App() {
             const resMessageFromServer = await axios.get(BASE_URL + "/post")
             console.log(resMessageFromServer)
             setMessageFromServer(resMessageFromServer.data)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const makeGetRequest = async () => {
+        try {
+            const res = await axios.get(HEROKU_URL + "/posts")
+            console.log(res.data)
         } catch (err) {
             console.log(err)
         }
@@ -50,6 +60,9 @@ function App() {
                         setInputMsg(e.target.value)
                     }}
                 />
+                <button onClick={makeGetRequest}>
+                    make get request to heroku server
+                </button>
                 <button onClick={makePostRequest}>make post request</button>
                 <button onClick={GetAllUsers}>get all users</button>
                 <button onClick={AddNewUser}>add new user</button>
