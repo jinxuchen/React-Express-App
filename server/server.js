@@ -17,7 +17,7 @@ const PORT = 3000
 app.use(bodyParser.json())
 app.use(cors())
 
-// Define a route
+//dummy get request
 app.get("/", async (req, res) => {
     try {
         const response = await axios.get(
@@ -25,6 +25,15 @@ app.get("/", async (req, res) => {
         )
         console.log(response.data)
         res.json(response.data)
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+// request hello
+app.get("/hello", async (req, res) => {
+    try {
+        res.send("hello from subtree-server!")
     } catch (err) {
         console.log(err)
     }
