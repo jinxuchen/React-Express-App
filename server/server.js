@@ -33,7 +33,7 @@ app.get("/", async (req, res) => {
 // request hello
 app.get("/hello", async (req, res) => {
     try {
-        res.send("hello from subtree-server!")
+        res.send("hello from heroku server!")
     } catch (err) {
         console.log(err)
     }
