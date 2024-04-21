@@ -48,7 +48,7 @@ const User = () => {
 
     return (
         <>
-            User Page
+            <h1>Add User</h1>
             {/* refactor: <NewUserInpu /> tto be populated   */}
             <div>
                 name:{" "}

@@ -1,0 +1,56 @@
+#root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.logo {
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
+}
+
+.upload-img {
+    margin: 50px;
+    will-change: filter;
+    transition: filter 400ms;
+    height: 300px;
+}
+
+.upload-img:hover {
+    height: 315px;
+}
+
+.logo:hover,
+.logo.react:hover,
+.upload-img:hover {
+    filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .react,
+    .upload-img {
+        animation: logo-spin infinite 20s linear; /* Spin infinitely */
+        transform-origin: center; /* Set the transform origin to the center */
+        transition: transform 0.3s ease-in-out; /* Smooth transition for scaling */
+    }
+}
+
+.card {
+    padding: 2em;
+}
+
+.read-the-docs {
+    color: #888;
+}
