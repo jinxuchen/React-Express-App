@@ -10,22 +10,26 @@ const BASE_URL = process.env.BASE_URL
 const Upload = () => {
     const [fileData, setFileData] = useState(null)
 
+    // const res = await axios.get(BASE_URL + "/upload", {
+    //     responseType: "json",
+    // })
+    // const data = res.data
+    // setImageList(data)
+    // console.log(data)
+
+    const fileBufferToBlob = (object) => {
+        const uint8Array = new Uint8Array(object.fileBuffer.data)
+        return new Blob([uint8Array], {
+            type: object.mimetype, // use mimetype from JSON response
+        })
+    }
+
     const getUploadedFile = async () => {
         try {
             const res = await axios.get(BASE_URL + "/upload", {
                 responseType: "json",
             })
-            const { fileBuffer, mimetype, filename } = res.data
-
-            const uint8Array = new Uint8Array(fileBuffer.data)
-            const blob = new Blob([uint8Array], {
-                type: mimetype, // use mimetype from JSON response
-            })
-
-            setFileData(blob)
-            console.log(fileData)
-            console.log(blob)
-            console.log(URL.createObjectURL(blob))
+            setFileData(res.data)
         } catch (err) {
             console.log(err)
         }
@@ -53,22 +57,32 @@ const Upload = () => {
             <Upload_ {...props}>
                 <Button icon={<UploadOutlined />}>Upload</Button>
             </Upload_>
-            {fileData && (
-                <div>
-                    <img
-                        className='upload-img'
-                        src={URL.createObjectURL(fileData)}
-                        alt='Uploaded'
-                    />
+            {fileData &&
+                fileData.length > 0 &&
+                fileData.map((item) => {
+                    return (
+                        <>
+                            <div>
+                                <img
+                                    className='upload-img'
+                                    src={URL.createObjectURL(
+                                        fileBufferToBlob(item)
+                                    )}
+                                    alt='Uploaded'
+                                />
 
-                    <a
-                        href={URL.createObjectURL(fileData)}
-                        download='downloaded-file'
-                    >
-                        Download File
-                    </a>
-                </div>
-            )}
+                                <a
+                                    href={URL.createObjectURL(
+                                        fileBufferToBlob(item)
+                                    )}
+                                    download='downloaded-file'
+                                >
+                                    Download File
+                                </a>
+                            </div>
+                        </>
+                    )
+                })}
         </div>
     )
 }

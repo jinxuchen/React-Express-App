@@ -14,25 +14,16 @@ const connectionString = `mongodb+srv://${userName}:${clusterPW}@${clusterName}.
 const connectDB = async () => {
     try {
         await mongoose.connect(connectionString, {})
-        // const db = mongoose.connection.db
-        // const collections = await db.listCollections().toArray()
-        // const collectionNames = collections.map((collection) => collection.name)
-
-        // console.log("Connection State:", res.readyState) // 1: connected
-        // console.log("Registered Models:", res.modelNames())
-        // console.log("Database Name:", db.databaseName) // Your database name
-        // console.log(collections)
-        // console.log("Collections in test-db:", collectionNames)
         console.log("Successfully connected to test-db in MongoDB Atlas")
 
-        const posts = await Post.create([
-            {
-                title: "post-title-test",
-                content: "post-content-test",
-                author: "seb",
-                date: "4/15/2024",
-            },
-        ])
+        // const posts = await Post.create([
+        //     {
+        //         title: "post-title-test",
+        //         content: "post-content-test",
+        //         author: "seb",
+        //         date: "4/15/2024",
+        //     },
+        // ])
     } catch (error) {
         console.error("MongoDB connection failed:", error.message)
         process.exit(1) // Exit with failure
