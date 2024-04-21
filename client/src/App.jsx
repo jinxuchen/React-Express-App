@@ -8,7 +8,7 @@ import Demo from "./demo/Demo"
 
 function App() {
     return (
-        <>
+        <div style={{ display: "flex" }}>
             <User />
             <Upload />
             <div>
@@ -16,7 +16,7 @@ function App() {
                 <img src={reactLogo} className='logo react' alt='React logo' />
             </div>
             <Demo />
-        </>
+        </div>
     )
 }
 

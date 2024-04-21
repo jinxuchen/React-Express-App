@@ -69,6 +69,39 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     }
 })
 
+router.get("/upload-one", async (req, res) => {
+    try {
+        const image = await Image.findOne()
+        //convert fileBuffer to URI
+        const imageDataURI = `data:${
+            image.mimetype
+        };base64,${image.fileBuffer.toString("base64")}`
+
+        if (!image === 0) {
+            return res
+                .status(404)
+                .json({ message: "No image-one found in database" })
+        }
+
+        // Map the images to extract filename, mimetype, and fileBuffer
+        const imageDetail = {
+            fileName: image.fileName,
+            mimetype: image.mimetype,
+            imageDataURI: imageDataURI, // Convert buffer to base64 string
+        }
+
+        res.setHeader("Content-Type", "application/json")
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=${image.fileName}`
+        )
+        res.status(200).json(imageDetail) // Send the image details as a JSON array
+    } catch (error) {
+        console.error("Error fetching image from MongoDB:", error.message)
+        res.status(500).json({ message: "Failed to fetch image" })
+    }
+})
+
 router.get("/upload", async (req, res) => {
     try {
         const image = await Image.findOne()
@@ -88,7 +121,10 @@ router.get("/upload", async (req, res) => {
         }))
 
         res.setHeader("Content-Type", "application/json")
-        res.setHeader("Content-Disposition", `attachment; filename=${fileName}`)
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=${images[0].fileName}`
+        )
         res.status(200).json(imageDetails) // Send the image details as a JSON array
     } catch (error) {
         console.error("Error fetching image from MongoDB:", error.message)

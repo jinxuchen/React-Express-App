@@ -9,13 +9,7 @@ const BASE_URL = process.env.BASE_URL
 
 const Upload = () => {
     const [fileData, setFileData] = useState(null)
-
-    // const res = await axios.get(BASE_URL + "/upload", {
-    //     responseType: "json",
-    // })
-    // const data = res.data
-    // setImageList(data)
-    // console.log(data)
+    const [fileDataOneURI, setFileDataOneURI] = useState(null)
 
     const fileBufferToBlob = (object) => {
         const uint8Array = new Uint8Array(object.fileBuffer.data)
@@ -30,6 +24,17 @@ const Upload = () => {
                 responseType: "json",
             })
             setFileData(res.data)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const getUploadedFileOneURI = async () => {
+        try {
+            const res = await axios.get(BASE_URL + "/upload-one", {
+                responseType: "json",
+            })
+            setFileDataOneURI(res.data)
         } catch (err) {
             console.log(err)
         }
@@ -54,35 +59,57 @@ const Upload = () => {
         <div className='Upload'>
             <h1>Upload</h1>
             <Button onClick={getUploadedFile}>get uploaded file</Button>
+            <Button onClick={getUploadedFileOneURI}>
+                get uploaded file-one
+            </Button>
             <Upload_ {...props}>
                 <Button icon={<UploadOutlined />}>Upload</Button>
             </Upload_>
-            {fileData &&
-                fileData.length > 0 &&
-                fileData.map((item) => {
-                    return (
-                        <>
-                            <div>
-                                <img
-                                    className='upload-img'
-                                    src={URL.createObjectURL(
-                                        fileBufferToBlob(item)
-                                    )}
-                                    alt='Uploaded'
-                                />
+            {fileDataOneURI ? (
+                <div className='upload-img-display'>
+                    <img
+                        className='upload-img'
+                        src={fileDataOneURI.imageDataURI}
+                        alt='Uploaded'
+                    />
 
-                                <a
-                                    href={URL.createObjectURL(
-                                        fileBufferToBlob(item)
-                                    )}
-                                    download='downloaded-file'
-                                >
-                                    Download File
-                                </a>
-                            </div>
-                        </>
+                    <a
+                        href={fileDataOneURI.imageDataURI}
+                        download='downloaded-file'
+                    >
+                        Download File
+                    </a>
+                </div>
+            ) : (
+                <p>no img-one to be displayed :&lt;</p>
+            )}
+
+            {fileData && fileData.length > 0 ? (
+                fileData.map((item, _key) => {
+                    return (
+                        <div className='upload-img-display' key={_key}>
+                            <img
+                                className='upload-img'
+                                src={URL.createObjectURL(
+                                    fileBufferToBlob(item)
+                                )}
+                                alt='Uploaded'
+                            />
+
+                            <a
+                                href={URL.createObjectURL(
+                                    fileBufferToBlob(item)
+                                )}
+                                download='downloaded-file'
+                            >
+                                Download File
+                            </a>
+                        </div>
                     )
-                })}
+                })
+            ) : (
+                <p>no fileData to be displayed ;)</p>
+            )}
         </div>
     )
 }
