@@ -5,10 +5,12 @@ import "./css/App.css"
 import User from "./user/User"
 import Upload from "./upload/Upload"
 import Demo from "./demo/Demo"
+import Auth from "./auth/Auth"
 
 function App() {
     return (
         <div style={{ display: "flex" }}>
+            <Auth />
             <User />
             <Upload />
             <div>

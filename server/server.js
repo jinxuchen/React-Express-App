@@ -8,7 +8,7 @@ const connectDB = require("./db")
 const uploadRouter = require("./route/upload")
 const usersRouter = require("./route/users")
 const postsRouter = require("./route/posts")
-// const multer = require("multer")
+const authRouter = require("./route/auth")
 
 connectDB()
 
@@ -22,11 +22,12 @@ app.use(bodyParser.json())
 app.use(uploadRouter)
 app.use(usersRouter)
 app.use(postsRouter)
+app.use(authRouter)
 
 // request hello
 app.get("/hello", async (req, res) => {
     try {
-        res.send("hello from subtree-server!")
+        res.send("hello from seb's server!")
         console.log("sent hello from server!")
     } catch (err) {
         console.log(err)
