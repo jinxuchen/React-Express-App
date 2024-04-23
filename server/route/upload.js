@@ -16,9 +16,10 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage: storage, fileFilter: fileFilter })
 
-let fileBuffer = null
-let fileName = null
-let mimetype = null
+//convert fileBuffer to URI
+const fileBufferToURI = ({ mimetype, fileBuffer }) => {
+    return `data:${mimetype};base64,${fileBuffer.toString("base64")}`
+}
 
 //multer middleware process multipart/form-data -> req.file
 router.post("/upload", upload.single("file"), async (req, res) => {
@@ -27,25 +28,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
             .status(400)
             .json({ message: "post /upload: No file uploaded" })
     }
-
-    // console.log({
-    //     message: "File received successfully",
-    //     filename: req.file.originalname,
-    //     size: req.file.size,
-    //     mimetype: req.file.mimetype,
-    // })
-
-    // // Store the uploaded file buffer
-    // fileBuffer = req.file.buffer
-    // fileName = req.file.originalname
-    // mimetype = req.file.mimetype
-
-    // res.status(200).json({
-    //     message: "File received successfully",
-    //     fileName: req.file.originalname,
-    //     size: req.file.size,
-    //     mimetype: req.file.mimetype,
-    // })
 
     const newImage = new Image({
         fileName: req.file.originalname,
@@ -72,24 +54,21 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 router.get("/upload-one", async (req, res) => {
     try {
         const image = await Image.findOne()
-        //convert fileBuffer to URI
-        const imageDataURI = `data:${
-            image.mimetype
-        };base64,${image.fileBuffer.toString("base64")}`
-
         if (!image === 0) {
             return res
                 .status(404)
                 .json({ message: "No image-one found in database" })
         }
-
+        const imageDataURI = fileBufferToURI({
+            mimetype: image.mimetype,
+            fileBuffer: image.fileBuffer,
+        })
         // Map the images to extract filename, mimetype, and fileBuffer
         const imageDetail = {
             fileName: image.fileName,
             mimetype: image.mimetype,
-            imageDataURI: imageDataURI, // Convert buffer to base64 string
+            imageDataURI: imageDataURI,
         }
-
         res.setHeader("Content-Type", "application/json")
         res.setHeader(
             "Content-Disposition",
@@ -104,7 +83,6 @@ router.get("/upload-one", async (req, res) => {
 
 router.get("/upload", async (req, res) => {
     try {
-        const image = await Image.findOne()
         const images = await Image.find().sort({ _id: -1 })
 
         if (!images || images.length === 0) {
@@ -117,7 +95,10 @@ router.get("/upload", async (req, res) => {
         const imageDetails = images.map((image) => ({
             fileName: image.fileName,
             mimetype: image.mimetype,
-            fileBuffer: image.fileBuffer, // Convert buffer to base64 string
+            imageDataURI: fileBufferToURI({
+                mimetype: image.mimetype,
+                fileBuffer: image.fileBuffer,
+            }), // Convert buffer to base64 string
         }))
 
         res.setHeader("Content-Type", "application/json")

@@ -42,6 +42,7 @@ const Upload = () => {
 
     const props = {
         name: "file",
+        accept: "image",
         //post request here
         action: BASE_URL + "/upload",
         headers: {
@@ -49,7 +50,7 @@ const Upload = () => {
         },
         onChange({ file, fileList }) {
             if (file.status !== "uploading") {
-                // console.log(file)
+                console.log(file)
                 // console.log(fileList)
             }
         },
@@ -90,16 +91,12 @@ const Upload = () => {
                         <div className='upload-img-display' key={_key}>
                             <img
                                 className='upload-img'
-                                src={URL.createObjectURL(
-                                    fileBufferToBlob(item)
-                                )}
+                                src={item.imageDataURI}
                                 alt='Uploaded'
                             />
 
                             <a
-                                href={URL.createObjectURL(
-                                    fileBufferToBlob(item)
-                                )}
+                                href={item.imageDataURI}
                                 download='downloaded-file'
                             >
                                 Download File
