@@ -1,8 +1,9 @@
-import React, { useState } from "react"
-import { auth } from "./firebase"
+import React, { useState, useEffect } from "react"
+import auth from "./firebase.config"
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendEmailVerification,
 } from "firebase/auth"
 import axios from "axios"
 
@@ -12,6 +13,7 @@ function Auth() {
     const [emailRegister, setEmailRegister] = useState("admin@gmail.com")
     const [passwordRegister, setPasswordRegister] = useState("qwerty")
     const [jwt, setJwt] = useState("")
+    const [errMsg, setErrMsg] = useState(null)
 
     const handleSignIn = async () => {
         try {
@@ -54,13 +56,34 @@ function Auth() {
                 emailRegister,
                 passwordRegister
             )
-            console.log("User registered:", userCredential.user)
-            // Optionally: Send email verification
-            // await userCredential.user.sendEmailVerification();
+            sendEmailVerification(userCredential.user)
         } catch (err) {
-            console.error("Error registering user:", err.message)
+            setErrMsg(err.message)
+            console.log("Error registering user:", err.message)
         }
     }
+    const sendVeriEmail = async () => {
+        try {
+            // Get the current user
+            const user = auth.currentUser
+
+            // Check if user is logged in
+            if (user) {
+                console.log(user)
+                sendEmailVerification(user)
+            } else {
+                // User is not logged in
+                throw new Error("User not logged in")
+            }
+        } catch (err) {
+            setErrMsg(err.message)
+            console.log("Error sending verification email:", err.message)
+        }
+    }
+
+    useEffect(() => {
+        console.log(auth.currentUser)
+    }, [auth.currentUser])
 
     return (
         <div>
@@ -92,6 +115,9 @@ function Auth() {
             <button onClick={handleSignIn}>get jwt</button>
             <button onClick={sendJWT}>send jwt to /protected-route</button>
             <button onClick={handleRegister}>register email and pw</button>
+            <button onClick={sendVeriEmail}>send verification email</button>
+            <>{errMsg && errMsg}</>
+            <br />
 
             {jwt ? "got jwp!" : "no jw"}
         </div>
