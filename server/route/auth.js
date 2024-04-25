@@ -1,9 +1,8 @@
 const express = require("express")
 const firebase = require("firebase-admin")
 
-// Initialize Firebase Admin SDK
+// todo: add to .env, deploy path whatever..
 const serviceAccount = require("../seb-firebase-firebase-adminsdk-j6s7v-54d8cb3f7b.json") // Replace with your service account key path
-
 firebase.initializeApp({
     credential: firebase.credential.cert(serviceAccount),
 })

@@ -26,12 +26,12 @@ function Auth() {
 
             // Get the JWT token
             const idToken = await user.getIdToken()
+            console.log("signInWithEmailAndPassword success! got jwt")
             setJwt(idToken)
         } catch (error) {
             console.error("Error signing in:", error)
         }
     }
-
     const sendJWT = async () => {
         try {
             const res = await axios.get(
@@ -42,7 +42,7 @@ function Auth() {
                     },
                 }
             )
-            console.log("Response:", res.data)
+            console.log("sendJWT success:", res.data)
         } catch (err) {
             console.log("Error:", err.response?.data || err.message)
         }
@@ -51,12 +51,19 @@ function Auth() {
         e.preventDefault()
         try {
             // Register user with email and password
-            const userCredential = await createUserWithEmailAndPassword(
+            const registeredUserCredential = await createUserWithEmailAndPassword(
                 auth,
                 emailRegister,
                 passwordRegister
             )
-            sendEmailVerification(userCredential.user)
+            console.log(
+                "register new user success! - registeredUserCredential: "
+            )
+            console.log(registeredUserCredential)
+
+            //send email verif
+            await sendEmailVerification(registeredUserCredential.user)
+            console.log("sendEmailVerification success!")
         } catch (err) {
             setErrMsg(err.message)
             console.log("Error registering user:", err.message)
@@ -69,8 +76,8 @@ function Auth() {
 
             // Check if user is logged in
             if (user) {
-                console.log(user)
-                sendEmailVerification(user)
+                await sendEmailVerification(user)
+                console.log("sendEmailVerification success!")
             } else {
                 // User is not logged in
                 throw new Error("User not logged in")
@@ -82,6 +89,7 @@ function Auth() {
     }
 
     useEffect(() => {
+        console.log("auth.currentUser: ")
         console.log(auth.currentUser)
     }, [auth.currentUser])
 

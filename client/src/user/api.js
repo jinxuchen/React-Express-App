@@ -19,7 +19,6 @@ const AddNewUser = async ({ name, age, email }) => {
 const GetAllUsers = async () => {
     try {
         const res = await axios.get(BASE_URL + "/users")
-        console.log(res.data)
         return res.data
     } catch (err) {
         console.log(err.error)
