@@ -11,13 +11,14 @@ function App() {
     return (
         <div style={{ display: "flex" }}>
             <Auth />
-            <User />
+            <Upload />
+            {/* <User />
             <Upload />
             <div>
                 <img src={viteLogo} className='logo' alt='Vite logo' />
                 <img src={reactLogo} className='logo react' alt='React logo' />
             </div>
-            <Demo />
+            <Demo /> */}
         </div>
     )
 }

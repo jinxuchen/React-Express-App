@@ -7,7 +7,7 @@ const postSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: true,
+        // required: true,
     },
     author: {
         type: String,
@@ -15,7 +15,7 @@ const postSchema = new mongoose.Schema({
     },
     date: {
         type: Date,
-        required: true,
+        // required: true,
     },
 })
 

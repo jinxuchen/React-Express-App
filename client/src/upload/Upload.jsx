@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Upload as Upload_, Button } from "antd"
 import { UploadOutlined } from "@ant-design/icons"
 import axios from "axios"
@@ -10,6 +10,7 @@ const BASE_URL = process.env.BASE_URL
 const Upload = () => {
     const [fileData, setFileData] = useState(null)
     const [fileDataOneURI, setFileDataOneURI] = useState(null)
+    const [token, setToken] = useState(null)
 
     const fileBufferToBlob = (object) => {
         const uint8Array = new Uint8Array(object.fileBuffer.data)
@@ -46,9 +47,12 @@ const Upload = () => {
         //post request here
         action: BASE_URL + "/upload",
         headers: {
-            authorization: "authorization-text",
+            Authorization: `Bearer ${token}`,
         },
         onChange({ file, fileList }) {
+            const token = localStorage.getItem("idToken")
+            setToken(token)
+
             if (file.status !== "uploading") {
                 console.log(file)
                 // console.log(fileList)

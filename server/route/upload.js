@@ -4,6 +4,7 @@ const Image = require("../models/Image") // Import Image model
 
 const router = express.Router()
 const storage = multer.memoryStorage()
+const { isAuthenticated } = require("./auth")
 
 const fileFilter = (req, file, cb) => {
     // Check if the file is an image
@@ -22,34 +23,41 @@ const fileBufferToURI = ({ mimetype, fileBuffer }) => {
 }
 
 //multer middleware process multipart/form-data -> req.file
-router.post("/upload", upload.single("file"), async (req, res) => {
-    if (!req.file) {
-        return res
-            .status(400)
-            .json({ message: "post /upload: No file uploaded" })
-    }
+router.post(
+    "/upload",
+    isAuthenticated,
+    upload.single("file"),
+    async (req, res) => {
+        console.log("req.decodedToken")
+        console.log(req.decodedToken.uid)
+        if (!req.file) {
+            return res
+                .status(400)
+                .json({ message: "post /upload: No file uploaded" })
+        }
 
-    const newImage = new Image({
-        fileName: req.file.originalname,
-        fileBuffer: req.file.buffer,
-        mimetype: req.file.mimetype,
-    })
-
-    try {
-        // Save the image to MongoDB
-        await newImage.save()
-
-        res.status(200).json({
-            message: "File received and saved to db successfully",
+        const newImage = new Image({
             fileName: req.file.originalname,
-            size: req.file.size,
+            fileBuffer: req.file.buffer,
             mimetype: req.file.mimetype,
         })
-    } catch (error) {
-        console.error("Error saving image to MongoDB:", error.message)
-        res.status(500).json({ message: "Failed to save image" })
+
+        try {
+            // Save the image to MongoDB
+            await newImage.save()
+
+            res.status(200).json({
+                message: "File received and saved to db successfully",
+                fileName: req.file.originalname,
+                size: req.file.size,
+                mimetype: req.file.mimetype,
+            })
+        } catch (error) {
+            console.error("Error saving image to MongoDB:", error.message)
+            res.status(500).json({ message: "Failed to save image" })
+        }
     }
-})
+)
 
 router.get("/upload-one", async (req, res) => {
     try {
