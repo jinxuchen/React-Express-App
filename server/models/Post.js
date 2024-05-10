@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose"
 
 // Define User Schema
 const postSchema = new mongoose.Schema({
@@ -22,4 +22,4 @@ const postSchema = new mongoose.Schema({
 // Create User Model
 const Post = mongoose.model("Post", postSchema)
 
-module.exports = Post
+export default Post

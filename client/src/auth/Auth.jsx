@@ -5,8 +5,58 @@ import {
     createUserWithEmailAndPassword,
 } from "firebase/auth"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 const BASE_URL = process.env.BASE_URL
+
+const SignUpPage = ({
+    emailRegister,
+    setEmailRegister,
+    passwordRegister,
+    setPasswordRegister,
+    handleRegister,
+}) => (
+    <div className='sign-up-page'>
+        <h2>Sign Up</h2>
+        <input
+            type='email'
+            placeholder='Email Register'
+            value={emailRegister}
+            onChange={(e) => setEmailRegister(e.target.value)}
+        />
+        <input
+            type='password'
+            placeholder='Password Register'
+            value={passwordRegister}
+            onChange={(e) => setPasswordRegister(e.target.value)}
+        />
+        <button onClick={handleRegister}>register email and pw</button>
+    </div>
+)
+const SignInPage = ({
+    email,
+    setEmail,
+    password,
+    setPassword,
+    handleSignIn,
+}) => (
+    <>
+        <h2>Sign In</h2>
+        <input
+            type='email'
+            placeholder='Email'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+            type='password'
+            placeholder='Password'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={handleSignIn}>sign in</button>
+    </>
+)
 
 function Auth() {
     const [email, setEmail] = useState("admin@gmail.com")
@@ -16,9 +66,13 @@ function Auth() {
     const [message, setMessage] = useState(null)
     const [pageRoute, setPageRoute] = useState("signIn") //signIn, signUp
 
-    const [currentUser, setCurrentUser] = useState(null)
+    const [user, setUser] = useState(() => {
+        const storedUser = JSON.parse(localStorage.getItem("user"))
+        console.log(storedUser)
+        return storedUser
+    })
     const [idToken, setIdToken] = useState(null)
-    const [decodedToken, setDecodedToken] = useState(null)
+    const navigate = useNavigate()
 
     const handleSignIn = async () => {
         try {
@@ -28,24 +82,30 @@ function Auth() {
                 password
             )
             const user = userCredential.user
-            setCurrentUser(user)
-            // Get the JWT token
             const idToken = await user.getIdToken()
+            setUser(user)
             setIdToken(idToken)
+            localStorage.setItem("idToken", idToken)
+            localStorage.setItem("user", JSON.stringify(user))
+
+            navigate("/upload")
+
             setMessage("sign in success!")
             console.log("sign in success!")
-            localStorage.setItem("idToken", idToken)
         } catch (error) {
             setMessage("sign in failed: " + error.message)
             console.log("sign in error: ", error.message)
         }
     }
     const handleSignOut = async () => {
-        if (currentUser) {
+        if (user) {
             try {
                 await auth.signOut()
-                setCurrentUser(null)
+                setUser(null)
                 setIdToken(null)
+                localStorage.clear("idToken")
+                localStorage.clear("user")
+
                 console.log("sign out success!")
                 setMessage("sign out success!")
             } catch (err) {
@@ -77,16 +137,14 @@ function Auth() {
     }
     const sendToProtectedRoute = async () => {
         try {
-            const token = localStorage.getItem("idToken")
             const res = await axios.get(BASE_URL + "/protected-route", {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${idToken}`,
                 },
             })
             console.log("sendToProtectedRpite success!: ")
             console.log(res.data)
             setMessage(res.data.message)
-            setDecodedToken(res.data.decodedToken)
         } catch (err) {
             setMessage(err.response.data.message)
             console.dir(err)
@@ -95,10 +153,9 @@ function Auth() {
 
     const getProtecedRoutePosts = async () => {
         try {
-            const token = localStorage.getItem("idToken")
             const res = await axios.get(BASE_URL + "/protected-route/posts", {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${idToken}`,
                 },
             })
             console.log(res.data)
@@ -109,13 +166,12 @@ function Auth() {
 
     const postProtecedRoutePosts = async () => {
         try {
-            const token = localStorage.getItem("idToken")
             const res = await axios.post(
                 BASE_URL + "/protected-route/posts",
                 { content: "hello!" }, // Empty object for the request body
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${idToken}`,
                     },
                 }
             )
@@ -125,42 +181,14 @@ function Auth() {
         }
     }
 
-    const SignUpPage = () => (
-        <div className='sign-up-page'>
-            <h2>Sign Up</h2>
-            <input
-                type='email'
-                placeholder='Email Register'
-                value={emailRegister}
-                onChange={(e) => setEmailRegister(e.target.value)}
-            />
-            <input
-                type='password'
-                placeholder='Password Register'
-                value={passwordRegister}
-                onChange={(e) => setPasswordRegister(e.target.value)}
-            />
-            <button onClick={handleRegister}>register email and pw</button>
-        </div>
-    )
-    const SignInPage = () => (
-        <>
-            <h2>Sign In</h2>
-            <input
-                type='email'
-                placeholder='Email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type='password'
-                placeholder='Password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={handleSignIn}>sign in</button>
-        </>
-    )
+    useEffect(() => {
+        // on page load: restore idToken, user state from localStorage
+        const idToken = localStorage.getItem("idToken")
+        const user = JSON.parse(localStorage.getItem("user"))
+        console.log(user)
+        setIdToken(idToken)
+        setUser(user)
+    }, [])
 
     return (
         <div
@@ -183,7 +211,7 @@ function Auth() {
             <br />
             <>
                 <h2> current user:</h2>
-                {currentUser ? currentUser.email : "none"}
+                {user ? user.email : "none"}
             </>
             <div>
                 <button
@@ -201,13 +229,32 @@ function Auth() {
                     go to sign up
                 </button>
             </div>
-            {currentUser ? (
+            {user ? (
                 <div>
                     <h2> Welcome to my site! </h2>
                     <button onClick={handleSignOut}>sign out</button>
                 </div>
             ) : (
-                <>{pageRoute === "signIn" ? <SignInPage /> : <SignUpPage />}</>
+                <>
+                    {pageRoute === "signIn" ? (
+                        <SignInPage
+                            email={email}
+                            setEmail={setEmail}
+                            password={password}
+                            setPassword={setPassword}
+                            handleSignIn={handleSignIn}
+                            handleRegister={handleRegister}
+                        />
+                    ) : (
+                        <SignUpPage
+                            emailRegister={emailRegister}
+                            setEmailRegister={setEmailRegister}
+                            passwordRegister={passwordRegister}
+                            setPasswordRegister={setPasswordRegister}
+                            handleRegister={handleRegister}
+                        />
+                    )}
+                </>
             )}
         </div>
     )

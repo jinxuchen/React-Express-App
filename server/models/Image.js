@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose"
 
 //mongoose create Schema and model
 const imageSchema = new mongoose.Schema({
@@ -6,16 +6,25 @@ const imageSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    fileBuffer: {
-        type: Buffer,
+    fileURI: {
+        type: String,
         required: true,
     },
     mimetype: {
         type: String,
         required: true,
     },
+    author: {
+        id: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+        },
+    },
 })
 
 const Image = mongoose.model("Image", imageSchema)
 
-module.exports = Image
+export default Image

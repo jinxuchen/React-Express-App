@@ -9,39 +9,46 @@ const BASE_URL = process.env.BASE_URL
 
 const Upload = () => {
     const [fileData, setFileData] = useState(null)
-    const [fileDataOneURI, setFileDataOneURI] = useState(null)
     const [token, setToken] = useState(null)
 
-    const fileBufferToBlob = (object) => {
-        const uint8Array = new Uint8Array(object.fileBuffer.data)
-        return new Blob([uint8Array], {
-            type: object.mimetype, // use mimetype from JSON response
-        })
-    }
-
-    const getUploadedFile = async () => {
+    const getUploadedFile = async (filterType) => {
         try {
-            const res = await axios.get(BASE_URL + "/upload", {
-                responseType: "json",
-            })
+            const user = JSON.parse(localStorage.getItem("user"))
+            const token = localStorage.getItem("idToken")
+            const userId = user?.uid
+
+            const res = await axios.post(
+                BASE_URL + "/getUploadImage",
+                { filter: filterType === "all" ? null : userId },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    responseType: "json",
+                }
+            )
             setFileData(res.data)
         } catch (err) {
             console.log(err)
         }
     }
-
-    const getUploadedFileOneURI = async () => {
+    const deleteImageOne = async (id) => {
         try {
-            const res = await axios.get(BASE_URL + "/upload-one", {
-                responseType: "json",
-            })
-            setFileDataOneURI(res.data)
+            const user = JSON.parse(localStorage.getItem("user"))
+            const token = localStorage.getItem("idToken")
+            const userId = user?.uid
+            await axios.post(
+                BASE_URL + "/deleteUploadImageOne",
+                { id: id },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    responseType: "json",
+                }
+            )
+            await getUploadedFile("all")
         } catch (err) {
             console.log(err)
         }
     }
-
-    const props = {
+    const uploadProps = {
         name: "file",
         accept: "image",
         //post request here
@@ -53,61 +60,60 @@ const Upload = () => {
             const token = localStorage.getItem("idToken")
             setToken(token)
 
-            if (file.status !== "uploading") {
-                console.log(file)
-                // console.log(fileList)
+            if (file.status === "done") {
+                // Update the files state with the updated fileList
+                getUploadedFile()
             }
         },
     }
 
+    useEffect(() => {
+        getUploadedFile("all")
+    }, [])
+
     return (
         <div className='Upload'>
             <h1>Upload</h1>
-            <Button onClick={getUploadedFile}>get uploaded file</Button>
-            <Button onClick={getUploadedFileOneURI}>
-                get uploaded file-one
+            <Button onClick={() => getUploadedFile()}>
+                get imgs uploaded by me
             </Button>
-            <Upload_ {...props}>
+            <Button onClick={() => getUploadedFile("all")}>get all imgs</Button>
+
+            <Upload_ {...uploadProps}>
                 <Button icon={<UploadOutlined />}>Upload</Button>
             </Upload_>
-            {fileDataOneURI ? (
-                <div className='upload-img-display'>
-                    <img
-                        className='upload-img'
-                        src={fileDataOneURI.imageDataURI}
-                        alt='Uploaded'
-                    />
-
-                    <a
-                        href={fileDataOneURI.imageDataURI}
-                        download='downloaded-file'
-                    >
-                        Download File
-                    </a>
-                </div>
-            ) : (
-                <p>no img-one to be displayed :&lt;</p>
-            )}
 
             {fileData && fileData.length > 0 ? (
-                fileData.map((item, _key) => {
-                    return (
-                        <div className='upload-img-display' key={_key}>
-                            <img
-                                className='upload-img'
-                                src={item.imageDataURI}
-                                alt='Uploaded'
-                            />
+                <div
+                    className='image-group'
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr",
+                    }}
+                >
+                    {fileData.map((item, _key) => {
+                        return (
+                            <div className='upload-img-display' key={_key}>
+                                <img
+                                    className='upload-img'
+                                    src={item.imageDataURI}
+                                    alt='Uploaded'
+                                />
 
-                            <a
-                                href={item.imageDataURI}
-                                download='downloaded-file'
-                            >
-                                Download File
-                            </a>
-                        </div>
-                    )
-                })
+                                <a
+                                    href={item.imageDataURI}
+                                    download='downloaded-file'
+                                >
+                                    Download File
+                                </a>
+                                <br />
+                                <button onClick={() => deleteImageOne(item.id)}>
+                                    Delete File
+                                </button>
+                            </div>
+                        )
+                    })}
+                </div>
             ) : (
                 <p>no fileData to be displayed ;)</p>
             )}

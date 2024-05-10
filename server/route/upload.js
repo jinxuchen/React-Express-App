@@ -1,10 +1,10 @@
-const express = require("express")
-const multer = require("multer")
-const Image = require("../models/Image") // Import Image model
+import express from "express"
+import multer from "multer"
+import Image from "../models/Image.js"
 
 const router = express.Router()
 const storage = multer.memoryStorage()
-const { isAuthenticated } = require("./auth")
+import { isAuthenticated } from "./auth.js"
 
 const fileFilter = (req, file, cb) => {
     // Check if the file is an image
@@ -14,7 +14,6 @@ const fileFilter = (req, file, cb) => {
         cb(new Error("Only image files are allowed"), false) // Reject the file
     }
 }
-
 const upload = multer({ storage: storage, fileFilter: fileFilter })
 
 //convert fileBuffer to URI
@@ -28,8 +27,8 @@ router.post(
     isAuthenticated,
     upload.single("file"),
     async (req, res) => {
-        console.log("req.decodedToken")
         console.log(req.decodedToken.uid)
+
         if (!req.file) {
             return res
                 .status(400)
@@ -38,8 +37,12 @@ router.post(
 
         const newImage = new Image({
             fileName: req.file.originalname,
-            fileBuffer: req.file.buffer,
+            fileURI: fileBufferToURI({
+                mimetype: req.file.mimetype,
+                fileBuffer: req.file.buffer,
+            }), // Convert buffer to base64 string
             mimetype: req.file.mimetype,
+            author: { id: req.decodedToken.uid, email: req.decodedToken.email },
         })
 
         try {
@@ -58,68 +61,91 @@ router.post(
         }
     }
 )
-
-router.get("/upload-one", async (req, res) => {
+//decoded token
+// {
+//     iss: 'https://securetoken.google.com/seb-firebase',
+//     aud: 'seb-firebase',
+//     auth_time: 1714634514,
+//     user_id: 'AF7yOqpX5AYGOagn8GH04v4rsBw2',
+//     sub: 'AF7yOqpX5AYGOagn8GH04v4rsBw2',
+//     iat: 1714634514,
+//     exp: 1714638114,
+//     email: 'admin@gmail.com',
+//     email_verified: false,
+//     firebase: { identities: { email: [Array] }, sign_in_provider: 'password' },
+//     uid: 'AF7yOqpX5AYGOagn8GH04v4rsBw2'
+//   }
+router.post("/getUploadImage", isAuthenticated, async (req, res) => {
     try {
-        const image = await Image.findOne()
-        if (!image === 0) {
-            return res
-                .status(404)
-                .json({ message: "No image-one found in database" })
+        const filter = req.body.filter
+        console.log(filter)
+
+        let images = []
+        if (filter) {
+            images = await Image.find({
+                //?
+                'author.id': filter
+            },
+            ).sort({
+                _id: -1,
+            })
+        } else {
+            images = await Image.find({}).sort({
+                _id: -1,
+            })
         }
-        const imageDataURI = fileBufferToURI({
-            mimetype: image.mimetype,
-            fileBuffer: image.fileBuffer,
-        })
-        // Map the images to extract filename, mimetype, and fileBuffer
-        const imageDetail = {
-            fileName: image.fileName,
-            mimetype: image.mimetype,
-            imageDataURI: imageDataURI,
+        // console.log(req.decodedToken)
+        if (images.length > 0) {
+            const imageDetails = images.map((image) => ({
+                fileName: image.fileName,
+                mimetype: image.mimetype,
+                imageDataURI: image.fileURI,
+                id: image._id.toString(),
+                author: { id: image.author, email: image.author.email },
+            }))
+
+            res.setHeader("Content-Type", "application/json")
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename=${images[0].fileName}`
+            )
+            res.status(200).json(imageDetails)
+        } else {
+            res.status(200).send([])
         }
-        res.setHeader("Content-Type", "application/json")
-        res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=${image.fileName}`
-        )
-        res.status(200).json(imageDetail) // Send the image details as a JSON array
+        // Send the image details as a JSON array
     } catch (error) {
-        console.error("Error fetching image from MongoDB:", error.message)
+        console.error(
+            "Error fetching image (probably)from MongoDB:",
+            error.message
+        )
         res.status(500).json({ message: "Failed to fetch image" })
     }
 })
-
-router.get("/upload", async (req, res) => {
+router.post("/deleteUploadImageOne", isAuthenticated, async (req, res) => {
     try {
-        const images = await Image.find().sort({ _id: -1 })
+        const imageToDeleteId = req.body.id
+        const userId = req.decodedToken.uid
 
-        if (!images || images.length === 0) {
-            return res
-                .status(404)
-                .json({ message: "No images found in database" })
+        const imageToDelete = await Image.findOne({ _id: imageToDeleteId })
+
+        if (!imageToDelete) {
+            return res.status(404).json({ message: "Image not found" });
+        } if (imageToDelete.author.id !== userId) {
+            return res.status(403).json({ message: "this is not your img!" });
         }
 
-        // Map the images to extract filename, mimetype, and fileBuffer
-        const imageDetails = images.map((image) => ({
-            fileName: image.fileName,
-            mimetype: image.mimetype,
-            imageDataURI: fileBufferToURI({
-                mimetype: image.mimetype,
-                fileBuffer: image.fileBuffer,
-            }), // Convert buffer to base64 string
-        }))
-
-        res.setHeader("Content-Type", "application/json")
-        res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=${images[0].fileName}`
-        )
-        res.status(200).json(imageDetails) // Send the image details as a JSON array
+        await Image.deleteOne({ _id: imageToDeleteId });
+        res.status(200).json({ message: "Image deleted successfully" });
+        // Send the image details as a JSON array
     } catch (error) {
-        console.error("Error fetching image from MongoDB:", error.message)
+        console.error(
+            "Error fetching image (probably)from MongoDB:",
+            error.message
+        )
         res.status(500).json({ message: "Failed to fetch image" })
     }
 })
 
 // Export the router
-module.exports = router
+export default router

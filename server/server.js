@@ -1,14 +1,12 @@
-// Import the Express module
-const express = require("express")
-const axios = require("axios")
-const cors = require("cors")
-const bodyParser = require("body-parser")
-const connectDB = require("./db")
+import cors from "cors"
+import bodyParser from "body-parser"
+import express from "express"
 
-const uploadRouter = require("./route/upload")
-const usersRouter = require("./route/users")
-const postsRouter = require("./route/posts")
-const authRouter = require("./route/auth")
+import connectDB from "./db.js"
+import uploadRouter from "./route/upload.js"
+import usersRouter from "./route/users.js"
+import postsRouter from "./route/posts.js"
+import authRouter, { isAuthenticated } from "./route/auth.js"
 
 connectDB()
 

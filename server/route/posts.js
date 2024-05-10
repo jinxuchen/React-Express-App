@@ -1,6 +1,7 @@
-const express = require("express")
+import express from "express"
+import Post from "../models/Post.js"
+
 const router = express.Router()
-const Post = require("../models/Post") // Import User model from models directory
 
 //post request
 router.get("/posts", async (req, res) => {
@@ -26,4 +27,4 @@ router.post("/posts", (req, res) => {
     res.send("Received message: " + message)
 })
 
-module.exports = router
+export default router

@@ -1,12 +1,10 @@
 // db.js
 
-const mongoose = require("mongoose")
-const User = require("./models/User") // Import User model from models directory
-const Post = require("./models/Post") // Import User model from models directory
+import mongoose from "mongoose"
 
 const localURI = "mongodb://localhost:27017/express-mongo-db"
 const userName = "seb"
-const clusterPW = "VndDdaU7BAhqxGjU"
+const clusterPW = "123"
 const clusterName = "Atkas"
 const dbName = "test-db" //sample_mflix, test, test-db
 const connectionString = `mongodb+srv://${userName}:${clusterPW}@${clusterName}.smiykpk.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${clusterName}`
@@ -30,4 +28,4 @@ const connectDB = async () => {
     }
 }
 
-module.exports = connectDB
+export default connectDB
